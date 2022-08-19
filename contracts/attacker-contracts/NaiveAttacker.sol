@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.0;
 
-import "../naive-receiver/FlashLoanReceiver.sol";
+import "../2_naive-receiver/FlashLoanReceiver.sol";
 
 interface INaiveReceiverLenderPool { 
   function flashLoan(address borrower, uint256 borrowAmount) external;
