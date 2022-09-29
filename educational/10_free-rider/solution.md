@@ -21,4 +21,4 @@ Ejemplo de flash swap: https://github.com/Uniswap/v2-periphery/blob/master/contr
 
 Existe un problema con el que me topé que tiene como etiqueta "UniswapV2: K". Cuando se hace la transferencia de un token a otra cuenta, el fee puede ser inclusivo o exclusivo. Si es inclusivo no pasa nada, se le quita un poco de eth al receptor, pero si es exclusivo, el router de Uniswap no tiene forma de saber si se envió lo correcto, entonces lo que hace es revertir la tx, o romper la pool del par con el transfer (por esto dice que el error es K, siendo K el resultado de X*Y --> La forma en que se calcula la curva y demás cosas de DeFi)
 Problema "UniswapV2 K": https://docs.uniswap.org/protocol/V2/reference/smart-contracts/common-errors#inclusive-fee-on-transfer-tokens
-
+Whitepaper para ver tema de flash swaps y fee: https://docs.uniswap.org/whitepaper.pdf
