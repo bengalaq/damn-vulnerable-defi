@@ -6,6 +6,7 @@ You start with 20 ETH and 10000 DVT tokens in balance. The new lending pool has 
 
 💡 IDEAS:
 1) A primera vista, la nueva pool parece haber solucionado el problema de PuppetPool v1, pero no estan heredando el contrato ReentrancyGuard para evitar ataques de reentrancy. ¿Será que no lo necesitan? ¿O apurados por resolver el problema anterior olvidaron añadirlo?
+2) Si el problema era tomar precios de un oráculo on-chain, y ahora se está haciendo pero con una librería, ¿Habrá cambiado algo realmente?
 
 
 📎 ENLACES ÚTILES:

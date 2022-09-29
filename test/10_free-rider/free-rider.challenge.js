@@ -50,7 +50,7 @@ describe('[Challenge] Free Rider', function () {
         // Note that the function takes care of deploying the pair automatically
         await this.token.approve(
             this.uniswapRouter.address,
-            UNISWAP_INITIAL_TOKEN_RESERVE
+            UNISWAP_INITIAL_TOKEN_RESERVE 
         );
         await this.uniswapRouter.addLiquidityETH(
             this.token.address,                                         // token to be traded against WETH
@@ -105,6 +105,11 @@ describe('[Challenge] Free Rider', function () {
 
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
+        const AttackerFactory = await ethers.getContractFactory("FreeRiderAttacker", attacker);
+        const attackerContract = await AttackerFactory.deploy(this.marketplace.address, this.buyerContract.address, this.uniswapPair.address, this.weth.address);
+        await attackerContract.deployed();
+
+        await attackerContract.connect(attacker).attack(); 
     });
 
     after(async function () {
@@ -127,3 +132,4 @@ describe('[Challenge] Free Rider', function () {
         ).to.be.lt(MARKETPLACE_INITIAL_ETH_BALANCE);
     });
 });
+  
